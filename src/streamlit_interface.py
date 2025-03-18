@@ -7,9 +7,121 @@ if 'message_history' not in st.session_state:
 
 message_history = st.session_state['message_history']
 
-# Titles
-st.title("Hello, Streamlit!")
-st.write("This is my first attempt at creating a simple chatbot using gemini API and streamlit :D")
+st.header("Music to match your mood", divider="rainbow")
+
+tab1, tab2 = st.tabs(
+    ["Generate song", "Discover"]
+)
+
+with tab1:
+    st.subheader("Generate a song")
+
+    # Story premise
+    mood = st.text_input(
+        "Enter your mood: \n\n", key="mood"
+    )
+
+    activity = st.multiselect(
+        "What you be doing while you listen to music? (can select multiple) \n\n",
+        [
+            "working",
+            "relaxing",
+            "working out",
+            "creative activity",
+            "hang out with friends",
+            "party",
+            "traveling",
+            "other",
+        ],
+        key="activity",
+
+    )
+
+    song_genre = st.multiselect(
+        "Select a song genre: \n\n",
+        ["pop", "rock", "R&B", "hip-hop", "classical", "jazz", "electronic"],
+        key="song_genre",
+
+    )
+
+    lyrics_instrumental = st.radio(
+        "Select if your song will be mostly lyrics or instrumentals: \n\n",
+        ["lyrics", "instrumental", "no preference"],
+        key="lyrics_instrumental",
+        horizontal=True,
+    )
+
+    era = st.radio(
+        "Select your favorite era of music: \n\n",
+        ["1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"],
+        key="era",
+        horizontal=True,
+    )
+    prompt = f"""Respond with a popular song ( a song that was once on the billboard top 100) that best fits the description below: \n
+    mood: {mood} \n
+    song genre: {song_genre} \n
+    lyrics or instrumental: {lyrics_instrumental} \n
+    Activity performed while listening to music: {activity} \n
+    Era of music: {era} \n
+    
+    List the song on a line of it's own in quotation marks followed by the artists name all in bold. 
+    Write a short description on how you chose that song. Do not include the song request in your response.
+    """
+    generate_t2t = st.button("Select my song", key="generate_t2t")
+    if generate_t2t and prompt:
+        # st.write(prompt)
+        with st.spinner(
+                 f"Generating your song using AI..."
+        ):
+            first_tab1, first_tab2 = st.tabs(["Song", "Prompt"])
+            with first_tab1:
+                response = send_prompt(
+                    prompt)
+
+                if response:
+                    st.write("Your song:")
+                    st.write(response)
+            with first_tab2:
+
+                st.text(prompt)
+with tab2:
+    st.subheader("Discover a New Song")
+    # Story premise
+    moodfordiscovery = st.text_input(
+        "Enter your mood: \n\n", key="moodfordiscovery")
+    song_genre_for_discovery = st.multiselect(
+        "Select a song genre: \n\n",
+        ["pop", "rock", "R&B", "hip-hop", "classical", "jazz", "electronic"],
+        key="song_genre_for_discovery",
+
+    )
+    lyrics_instrumental_for_discovery = st.radio(
+        "Select if your song will be mostly lyrics or instrumentals: \n\n",
+        ["lyrics", "instrumental", "no preference"],
+        key="lyrics_instrumental_for_discovery",
+        horizontal=True,
+    )
+    prompt = f"""Respond with a non-popular song ( a song that was never on the billboard top 100) that best fits the description below: \n
+    mood: {moodfordiscovery} \n
+    genre: {song_genre_for_discovery} \n
+    lyrics or instrumental:{lyrics_instrumental_for_discovery} \n 
+    List the song on a line of it's own in quotation marks followed by the artists name all in bold. 
+    Write a short description on how you chose that song. Do not include the song request in your response. 
+    """
+    generate_t2t = st.button("Generate my song", key="generate_song")
+    if generate_t2t and prompt:
+        second_tab1, second_tab2 = st.tabs(["Song", "Prompt"])
+        with st.spinner(
+                f"Generating your song using AI ..."
+        ):
+            with second_tab1:
+                response = send_prompt(
+                    prompt)
+                if response:
+                    st.write("Your song suggestion:")
+                    st.write(response)
+            with second_tab2:
+                st.text(prompt)
 
 # Insert API key to get started
 with st.sidebar:
@@ -31,21 +143,3 @@ with st.sidebar:
         st.markdown(instructions)
     else:
         st.write("API Key already entered. Enjoy :D")
-    
-    
-
-
-# Send, recieve and preserve conversation history
-prompt = st.chat_input("Enter a prompt here")
-
-messages = st.container()
-if prompt:
-    message_history.append({"user":prompt})
-    response = send_prompt(prompt)
-    message_history.append({"assistant":response})
-
-for message in message_history:
-    key, value = next(iter(message.items())) 
-    messages.chat_message(key).write(value)
-
-    
